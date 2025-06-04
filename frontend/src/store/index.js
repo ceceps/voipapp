@@ -7,7 +7,7 @@ Vue.use(Vuex);
 export default new Vuex.Store({
   state: {
     callLogs: [],
-    statuses: [] // Menyimpan hanya daftar status dari log
+    statuses: []
   },
   mutations: {
     setCallLogs(state, logs) {
@@ -17,7 +17,7 @@ export default new Vuex.Store({
   },
   actions: {
     async fetchCallLogs({ commit }, filters = {}) {
-      const response = await axios.get('/api/call-logs', { params: filters });
+      const response = await axios.get('/call-logs', { params: filters });
       commit('setCallLogs', response.data);
     }
   },
