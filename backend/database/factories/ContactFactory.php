@@ -18,7 +18,7 @@ class ContactFactory extends Factory
      */
     public function definition(): array
     {
-        return [
+         return [
             'id' => Str::uuid(),
             'name' => fake()->name(),
             'phone' => '+61' . fake()->numerify('8##########'),

@@ -5,11 +5,13 @@ namespace App\Models;
 use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Contact extends Model
 {
 
-    use HasUuids;
+    use HasUuids, HasFactory;
+    protected $guarded = [];
     protected $keyType = 'string';
     public $incrementing = false;
 

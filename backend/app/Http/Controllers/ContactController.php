@@ -9,7 +9,7 @@ class ContactController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Contact::select('name','phone','company','role');
+        $query = Contact::select('id','name','phone','company','role');
 
         if ($request->company) {
             $query->where('company', 'like', "%{$request->company}%");
