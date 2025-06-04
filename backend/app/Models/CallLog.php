@@ -7,10 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Contact extends Model
+class CallLog extends Model
 {
-
     use HasUuids, HasFactory;
+
     protected $guarded = [];
     protected $keyType = 'string';
     public $incrementing = false;
@@ -21,14 +21,8 @@ class Contact extends Model
         });
     }
 
-    public function user()
+     public function contact()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(Contact::class);
     }
-
-    public function calllog()
-    {
-        return $this->hasMany(CallLog::class);
-    }
-
 }

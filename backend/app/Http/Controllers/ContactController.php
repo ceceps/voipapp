@@ -19,6 +19,6 @@ class ContactController extends Controller
             $query->where('role', $request->role);
         }
 
-        return response()->json($query->paginate());
+        return response()->json($query->get());
     }
 }
