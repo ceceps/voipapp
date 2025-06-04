@@ -4,7 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Contact;
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -15,8 +15,14 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         User::factory()
-                ->count(5)
+                ->count(2)
                 ->hasContacts(10) // 10 contact per user
                 ->create();
+
+        Contact::factory()
+                ->count(50)
+                ->hasCallLogs(10) // 10 contact per user
+                ->create();
+
     }
 }

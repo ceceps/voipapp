@@ -26,7 +26,7 @@ class Contact extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function calllog()
+    public function callLogs()
     {
         return $this->hasMany(CallLog::class);
     }
