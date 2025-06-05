@@ -1,9 +1,8 @@
 <template>
-  <div class="p-6 bg-slate-400 min-h-200">
+  <div class="p-6">
     <h1 class="text-2xl font-bold mb-6 active:text-blue">
-        <a href="/contacts">Contacts</a> | <a href="/call-logs">Call Logs</a>
+      <a href="/contacts">Contacts</a> | <a href="/call-logs">Call Logs</a>
     </h1>
-
     <div class="flex gap-4 mb-4 items-center">
       <input
         v-model="filters.company"
@@ -27,10 +26,10 @@
       >
         Reset
       </button>
-      <div v-if="loading" class="text-gray-500 text-sm mb-4 w-1/2">Loading contacts...</div>
+      <div v-if="loading" class="text-gray-500 text-sm mb-4">Loading contacts...</div>
     </div>
-    
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6" v-if="!loading">
       <div
         v-for="contact in paginatedContacts"
         :key="contact.id"
@@ -49,16 +48,23 @@
           >{{ contact.role }}</span
         >
         <p class="text-gray-500 text-sm">
-          Company: {{ contact.company }} <br />
-          Phone: {{ contact.phone }}
+          {{ contact.company }} <br />
+          {{ contact.phone }}
         </p>
 
         <div class="mt-4 flex divide-x border-t pt-3">
-          <button class="flex-1 text-center text-sm text-gray-700 hover:text-orange-500">
+          <button class="flex-1 text-center text-sm text-gray-700 hover:text-yellow-600">
+            <i class="fas fa-notes mr-1"></i>Notes
+          </button>
+          <button
+            @click="toggle(contact.id)"
+            :class="contact.isFavorite ? 'text-yellow-500' : 'text-gray-400'"
+            class="flex-1 text-center text-sm text-gray-700 hover:text-yellow-600"
+          >
             <i class="fas fa-star mr-1"></i>Favorite
           </button>
           <button
-            class="flex-1 text-center text-sm text-red-600 hover:text-orange-500"
+            class="flex-1 text-center text-sm text-gray-700 hover:text-red-600"
             @click="openCallModal(contact)"
           >
             <i class="fas fa-phone mr-1"></i>Call
@@ -66,7 +72,7 @@
         </div>
       </div>
     </div>
-    <!-- pagination -->
+
     <div
       class="mt-4 flex justify-center items-center gap-4"
       v-if="!loading && totalPages > 1"
@@ -88,7 +94,7 @@
       </button>
     </div>
 
-    <!-- Modal -->
+    <!-- Call Modal -->
     <transition name="fade">
       <div
         v-if="showModal"
@@ -97,10 +103,16 @@
         <div
           class="bg-white rounded-lg p-6 w-full max-w-md shadow-lg text-center relative"
         >
-          <div class="text-4xl text-blue-600 mb-4">
-            <i class="fas fa-user-circle"></i>
+          <div class="flex text-4xl text-blue-600 mb-4 items-center justify-center">
+            <img
+              :src="
+                selectedContact.avatar ||
+                'https://i.pravatar.cc/100?u=' + selectedContact.id
+              "
+              class="w-10 h-10  rounded-full align-middle"
+            />
           </div>
-          <h2 class="text-lg font-semibold">{{ selectedContact.name }}</h2>
+          <h2 class="text-lg font-semibold"> {{ selectedContact.name }}</h2>
           <p class="text-gray-600">{{ selectedContact.phone }}</p>
           <p v-if="callStatus" class="mt-2 text-green-600 font-semibold">
             {{ callStatus }}
@@ -126,11 +138,11 @@
 <script>
 import axios from "axios";
 import { API_URL } from "@/config";
+import { mapState, mapMutations } from "vuex";
 
 export default {
   data() {
     return {
-      contacts: [],
       filters: {
         company: this.$route.query.company || "",
         role: this.$route.query.role || "",
@@ -140,10 +152,11 @@ export default {
       perPage: 6,
       showModal: false,
       selectedContact: {},
-      callStatus: String,
+      callStatus: "",
     };
   },
   computed: {
+    ...mapState(["contacts"]),
     paginatedContacts() {
       const start = (this.currentPage - 1) * this.perPage;
       return this.contacts.slice(start, start + this.perPage);
@@ -152,27 +165,25 @@ export default {
       return Math.ceil(this.contacts.length / this.perPage);
     },
   },
-  mounted() {
-    this.fetchContacts();
-  },
   methods: {
+    ...mapMutations(["toggleFavorite", "setContacts"]),
+    toggle(contactId) {
+      this.toggleFavorite(contactId);
+    },
     applyFilter() {
-      const current = this.$route.query;
-      if (
-        current.company !== this.filters.company ||
-        current.role !== this.filters.role
-      ) {
-        this.$router.push({
-          path: "/contacts",
-          query: { ...this.filters },
-        });
-      }
+      this.$router.push({
+        path: "/contacts",
+        query: { ...this.filters },
+      });
     },
     resetFilter() {
       this.filters.company = "";
       this.filters.role = "";
       this.currentPage = 1;
-      this.$router.push({ path: "/contacts" });
+      const isAtRoot = Object.keys(this.$route.query).length === 0;
+      if (!isAtRoot) {
+        this.$router.push({ path: "/contacts" });
+      }
     },
     openCallModal(contact) {
       this.selectedContact = contact;
@@ -189,8 +200,10 @@ export default {
     },
     confirmSimulateCall() {
       axios.post(`${API_URL}/simulate-call/${this.selectedContact.id}`).then((res) => {
-        this.callStatus = res.data.data.status;
-        this.closeCallModal();
+            this.callStatus = res.data.data.status;
+            console.log(this.callStatus);
+            this.closeCallModal();
+        
       });
     },
     fetchContacts() {
@@ -198,7 +211,7 @@ export default {
       axios
         .get(`${API_URL}/contacts`, { params: this.filters })
         .then((res) => {
-          this.contacts = res.data.filter((c) => c && c.id);
+          this.setContacts(res.data);
           this.loading = false;
           this.currentPage = 1;
         })
@@ -222,4 +235,12 @@ export default {
 
 <style scoped>
 @import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css");
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+.fade-enter,
+.fade-leave-to {
+  opacity: 0;
+}
 </style>
