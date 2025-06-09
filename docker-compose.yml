@@ -1,0 +1,79 @@
+services:
+  php_laravel:
+    build: ./backend
+    image: php:latest
+    container_name: php_laravel
+    hostname: "php"
+    volumes:
+      - ./backend:/var/www/html
+      - ./php/www.conf:/usr/local/etc/php-fpm.d/www.conf
+    working_dir: /var/www/html
+    environment:
+      - APP_ENV=local
+      - APP_DEBUG=true
+      - DB_CONNECTION=mysql
+      - DB_HOST=mysql_laravel
+      - DB_PORT=3306
+      - DB_DATABASE=crmvoip
+      - DB_USERNAME=root
+      - DB_PASSWORD=123
+      - SANCTUM_STATEFUL_DOMAINS=crm.test
+      - SESSION_DRIVER=cookie 
+      - SESSION_DOMAIN=crm.test
+    depends_on: 
+      - mysql_laravel
+    networks:
+      - laravelnetwork
+
+  mysql_laravel:
+    image: mariadb:10.2
+    container_name: mysql_laravel
+    restart: unless-stopped
+    tty: true
+    ports:
+      - "36306:3306"
+    volumes:
+      - ./database/data:/var/lib/mysql
+      - ./database/conf.d:/etc/mysql/conf.d:ro
+    environment:
+      MYSQL_USER: root
+      MYSQL_PASSWORD: 123
+      MYSQL_ROOT_PASSWORD: 123
+      TZ: Asia/Jakarta
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql  
+    read_only: false
+    networks:
+      - laravelnetwork
+
+  nginx_laravel:
+    build: ./nginx
+    image: nginx:latest
+    container_name: nginx_laravel
+    hostname: "nginx"
+    ports:
+      - "80:80"
+    volumes:
+      - ./backend:/var/www/html
+      - ./nginx/conf.d:/etc/nginx/conf.d
+    depends_on:
+      - php_laravel
+    networks:
+      - laravelnetwork
+
+  npm:
+    build: ./frontend 
+    working_dir: /var/www/app
+    volumes:
+      - ./frontend:/var/www/app
+      - /var/www/app/node_modules  #ignore node_modules dir when copy
+    ports:
+      - "5173:5173"
+    entrypoint: [ 'npm' ]
+    networks:
+      - laravelnetwork
+
+networks:
+  # a network allows the various containers to communicate with each other
+  laravelnetwork:
+    driver: bridge
