@@ -3,7 +3,7 @@ FROM php:8.4-fpm
 ENV COMPOSER_MEMORY_LIMIT='-1'
 
 WORKDIR /var/www/html
-COPY ./composer.json /var/www/html/composer.json
+
 
 ENV PS1="\u@\h:\w\\$ "
 ENV TZ="Asia/Jakarta"
@@ -136,10 +136,13 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 RUN ln -s /usr/local/bin/docker-entrypoint.sh /
 
 
+#install composer dependecies
+COPY ./composer.json /var/www/html/composer.json
+RUN composer install --optimize-autoloader --no-dev
 
-RUN composer install --optimize-autoloader --no-dev \ 
-    && php artisan key:generate \
-    && php artisan storage:link
+COPY . /var/www/html 
+ 
+RUN php artisan key:generate && php artisan storage:link
 
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html \
