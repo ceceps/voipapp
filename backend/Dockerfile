@@ -26,6 +26,7 @@ RUN apt-get update && \
         git \
         cron \
         nano \
+        unzip \
         libxml2-dev
 
 # Install soap extension
@@ -104,48 +105,44 @@ RUN chmod 0644 /etc/cron.d/laravel-scheduler
 #--------------------------------------------------------------------------
 #
 
-ADD ./local.ini /usr/local/etc/php/conf.d
+COPY ./local.ini /usr/local/etc/php/conf.d
 
 #####################################
 # Aliases:
 #####################################
 # docker-compose exec php-fpm dep --> locally installed Deployer binaries
-RUN echo '#!/bin/bash\n/usr/local/bin/php /var/www/vendor/bin/dep "$@"' > /usr/bin/dep
-RUN chmod +x /usr/bin/dep
+RUN echo '#!/bin/bash\n/usr/local/bin/php /var/www/vendor/bin/dep "$@"' > /usr/bin/dep \
+    && chmod +x /usr/bin/dep \
 # docker-compose exec php-fpm art --> php artisan
-RUN echo '#!/bin/bash\n/usr/local/bin/php /var/www/html/artisan "$@"' > /usr/bin/art
-RUN chmod +x /usr/bin/art
+    && echo '#!/bin/bash\n/usr/local/bin/php /var/www/html/artisan "$@"' > /usr/bin/art \
+    && chmod +x /usr/bin/art \
 # docker-compose exec php-fpm migrate --> php artisan migrate
-RUN echo '#!/bin/bash\n/usr/local/bin/php /var/www/html/artisan migrate "$@"' > /usr/bin/migrate
-RUN chmod +x /usr/bin/migrate
+    && echo '#!/bin/bash\n/usr/local/bin/php /var/www/html/artisan migrate "$@"' > /usr/bin/migrate \
+    && chmod +x /usr/bin/migrate \
 # docker-compose exec php-fpm fresh --> php artisan migrate:fresh --seed
-RUN echo '#!/bin/bash\n/usr/local/bin/php /var/www/html/artisan migrate:fresh --seed' > /usr/bin/fresh
-RUN chmod +x /usr/bin/fresh
+    && echo '#!/bin/bash\n/usr/local/bin/php /var/www/html/artisan migrate:fresh --seed' > /usr/bin/fresh \
+    && chmod +x /usr/bin/fresh \
 # docker-compose exec php-fpm t --> run the tests for the project and generate testdox
-RUN echo '#!/bin/bash\n/usr/local/bin/php /var/www/html/artisan config:clear\n/var/www/vendor/bin/phpunit -d memory_limit=2G --stop-on-error --stop-on-failure --testdox-text=tests/report.txt "$@"' > /usr/bin/t
-RUN chmod +x /usr/bin/t
+    && echo '#!/bin/bash\n/usr/local/bin/php /var/www/html/artisan config:clear\n/var/www/vendor/bin/phpunit -d memory_limit=2G --stop-on-error --stop-on-failure --testdox-text=tests/report.txt "$@"' > /usr/bin/t \
+    && chmod +x /usr/bin/t \
 # docker-compose exec php-fpm d --> run the Laravel Dusk browser tests for the project
-RUN echo '#!/bin/bash\n/usr/local/bin/php /var/www/html/artisan config:clear\n/bin/bash\n/usr/local/bin/php /var/www/html/artisan dusk -d memory_limit=2G --stop-on-error --stop-on-failure --testdox-text=tests/report-dusk.txt "$@"' > /usr/bin/d
-RUN chmod +x /usr/bin/d
-
-RUN rm -r /var/lib/apt/lists/*
+    && echo '#!/bin/bash\n/usr/local/bin/php /var/www/html/artisan config:clear\n/bin/bash\n/usr/local/bin/php /var/www/html/artisan dusk -d memory_limit=2G --stop-on-error --stop-on-failure --testdox-text=tests/report-dusk.txt "$@"' > /usr/bin/d \
+    && chmod +x /usr/bin/d \
+    && rm -r /var/lib/apt/lists/*
 
 
 COPY ./docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-RUN ln -s /usr/local/bin/docker-entrypoint.sh /
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh \
+    && ln -s /usr/local/bin/docker-entrypoint.sh /
 
 
 #install composer dependecies
-COPY ./composer.json /var/www/html/composer.json
-RUN composer install --optimize-autoloader --no-dev
+COPY . /var/www/html
 
-COPY . /var/www/html 
- 
-RUN php artisan key:generate && php artisan storage:link
-
+RUN composer install --optimize-autoloader --no-dev \
+    && php artisan key:generate && php artisan storage:link \
 # Set permissions
-RUN chown -R www-data:www-data /var/www/html \
+    && chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage
 
 ENTRYPOINT ["docker-entrypoint.sh"]
