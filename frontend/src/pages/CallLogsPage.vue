@@ -1,7 +1,7 @@
 <template>
   <div class="p-6">
     <h1 class="text-2xl font-bold mb-6">
-        <a href="/contacts">Contacts</a> | <a href="/call-logs">Call Logs</a>
+       <a href="/">Home</a> | <a href="/contacts">Contacts</a> | <a href="/call-logs">Call Logs</a>
     </h1>
 
     <div class="mb-4 flex flex-wrap gap-4 items-end">
@@ -30,7 +30,7 @@
         <tr v-for="log in paginatedLogs" :key="log.id" class="bg-yellow-200">
           <td class="border px-4 py-2">{{ log.contact?.name || '-' }}</td>
           <td class="border px-4 py-2">{{ log.duration }}</td>
-          <td class="border px-4 py-2">{{ formatTimestamp(log.timestamps) }}</td>
+          <td class="border px-4 py-2">{{ formatTimestamp(log.created_at) }}</td>
           <td class="border px-4 py-2">{{ log.status }}</td>
         </tr>
       </tbody>
@@ -48,7 +48,7 @@
 
 <script>
 import axios from 'axios';
-import { API_URL } from '@/config';
+import { API_VER_URL } from '@/config';
 
 export default {
   data() {
@@ -80,7 +80,7 @@ export default {
   methods: {
     fetchCallLogs() {
       this.loading = true;
-      axios.get(`${API_URL}/call-logs`, {
+      axios.get(`${API_VER_URL}/call-logs`, {
         params: {
           start_date: this.startDate,
           end_date: this.endDate,

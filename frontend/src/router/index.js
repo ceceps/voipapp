@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import VueRouter  from 'vue-router'
-import LoginsPage from '@/pages/LoginsPage.vue'
+import HomesPage from '@/pages/HomesPage.vue'
 import ContactsPage from '@/pages/ContactsPage.vue'
 import CallLogsPage from '@/pages/CallLogsPage.vue'
 
@@ -11,8 +11,8 @@ const router = new VueRouter({
   routes: [
     {
       path: '/',
-      name: 'logins',
-      component: LoginsPage
+      name: 'homes',
+      component: HomesPage
     },
     {
       path: '/contacts',
