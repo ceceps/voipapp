@@ -1,8 +1,9 @@
 <template>
   <div class="p-6">
     <h1 class="text-2xl font-bold mb-6 active:text-blue">
-      <a href="/contacts">Contacts</a> | <a href="/call-logs">Call Logs</a>
+      <a href="/">Home</a> | <a href="/contacts">Contacts</a> | <a href="/call-logs">Call Logs</a>
     </h1>
+     
     <div class="flex gap-4 mb-4 items-center">
       <input
         v-model="filters.company"
@@ -12,6 +13,7 @@
       <select v-model="filters.role" class="border px-3 py-2 rounded">
         <option value="">All Roles</option>
         <option value="Manager">Manager</option>
+        <option value="Staff">Staff</option>
         <option value="Employee">Employee</option>
       </select>
       <button
@@ -49,16 +51,13 @@
         >
         <p class="text-gray-500 text-sm">
           {{ contact.company }} <br />
-          {{ contact.phone }}
+          {{ contact.phone }} 
         </p>
 
         <div class="mt-4 flex divide-x border-t pt-3">
-          <button class="flex-1 text-center text-sm text-gray-700 hover:text-yellow-600">
-            <i class="fas fa-notes mr-1"></i>Notes
-          </button>
           <button
             @click="toggle(contact.id)"
-            :class="contact.isFavorite ? 'text-yellow-500' : 'text-gray-400'"
+            :class="contact.favorite ? 'text-yellow-500' : 'text-gray-400'"
             class="flex-1 text-center text-sm text-gray-700 hover:text-yellow-600"
           >
             <i class="fas fa-star mr-1"></i>Favorite
@@ -109,10 +108,10 @@
                 selectedContact.avatar ||
                 'https://i.pravatar.cc/100?u=' + selectedContact.id
               "
-              class="w-10 h-10  rounded-full align-middle"
+              class="w-10 h-10 rounded-full align-middle"
             />
           </div>
-          <h2 class="text-lg font-semibold"> {{ selectedContact.name }}</h2>
+          <h2 class="text-lg font-semibold">{{ selectedContact.name }}</h2>
           <p class="text-gray-600">{{ selectedContact.phone }}</p>
           <p v-if="callStatus" class="mt-2 text-green-600 font-semibold">
             {{ callStatus }}
@@ -137,7 +136,7 @@
 
 <script>
 import axios from "axios";
-import { API_URL } from "@/config";
+import { API_VER_URL } from "@/config";
 import { mapState, mapMutations } from "vuex";
 
 export default {
@@ -168,7 +167,18 @@ export default {
   methods: {
     ...mapMutations(["toggleFavorite", "setContacts"]),
     toggle(contactId) {
-      this.toggleFavorite(contactId);
+      const contact = this.contacts.find(c => c.id === contactId);
+      if (!contact) return;
+      const newFavorite = !contact.favorite;
+
+       axios.post(`${API_VER_URL}/favorite`, {
+          contact_id: contactId,
+          favorite: newFavorite
+        }).then(() => {
+          contact.favorite = newFavorite;
+        }).catch((error) => {
+           console.error("Failed Stored favorite:", error);
+        });
     },
     applyFilter() {
       this.$router.push({
@@ -199,17 +209,18 @@ export default {
       }, 800);
     },
     confirmSimulateCall() {
-      axios.post(`${API_URL}/simulate-call/${this.selectedContact.id}`).then((res) => {
-            this.callStatus = res.data.data.status;
-            console.log(this.callStatus);
-            this.closeCallModal();
-        
-      });
+      axios
+        .post(`${API_VER_URL}/simulate-call/${this.selectedContact.id}`)
+        .then((res) => {
+          this.callStatus = res.data.data.status;
+          console.log(this.callStatus);
+          this.closeCallModal();
+        });
     },
     fetchContacts() {
       this.loading = true;
       axios
-        .get(`${API_URL}/contacts`, { params: this.filters })
+        .get(`${API_VER_URL}/contacts`, { params: this.filters })
         .then((res) => {
           this.setContacts(res.data);
           this.loading = false;
