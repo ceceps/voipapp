@@ -7,6 +7,8 @@ services:
     volumes:
       - ./backend:/var/www/html
       - ./backend/www.conf:/usr/local/etc/php-fpm.d/www.conf
+      - ./backend/local.ini:/usr/local/etc/php/conf.d/local.ini
+      - ./backend/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh
     working_dir: /var/www/html
     environment:
       - APP_ENV=local
@@ -20,6 +22,7 @@ services:
       - SANCTUM_STATEFUL_DOMAINS=crm.test
       - SESSION_DRIVER=cookie 
       - SESSION_DOMAIN=crm.test
+      - XDEBUG=false
     depends_on: 
       - mysql_laravel
     networks:
@@ -42,7 +45,6 @@ services:
       TZ: Asia/Jakarta
       SERVICE_TAGS: dev
       SERVICE_NAME: mysql  
-    read_only: false
     networks:
       - laravelnetwork
 
@@ -50,14 +52,16 @@ services:
     build: ./nginx
     image: nginx:latest
     container_name: nginx_laravel
-    hostname: "nginx"
+    hostname: nginx
     ports:
       - "80:80"
     volumes:
-      - ./backend:/var/www/html
+      - ./backend/public:/var/www/html/public
+      - ./frontend/dist:/usr/share/nginx/html/crm
       - ./nginx/conf.d:/etc/nginx/conf.d
     depends_on:
       - php_laravel
+      - npm
     networks:
       - laravelnetwork
 
@@ -70,8 +74,6 @@ services:
     ports:
       - "5173:5173"
     entrypoint: [ 'npm' ]
-    depends_on:
-      - nginx_laravel
     networks:
       - laravelnetwork
 

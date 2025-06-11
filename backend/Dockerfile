@@ -2,7 +2,7 @@ FROM php:8.4-fpm
 
 ENV COMPOSER_MEMORY_LIMIT='-1'
 
-WORKDIR /var/www/html
+
 
 
 ENV PS1="\u@\h:\w\\$ "
@@ -59,7 +59,7 @@ RUN docker-php-ext-install bcmath
 #####################################
 # PHPRedis:
 #####################################
-RUN pecl install redis && docker-php-ext-enable redis
+# RUN apt-get install redis -y --force-yes && pecl install redis && docker-php-ext-enable redis
 RUN pecl install mongodb && docker-php-ext-enable mongodb
 
 #####################################
@@ -105,7 +105,6 @@ RUN chmod 0644 /etc/cron.d/laravel-scheduler
 #--------------------------------------------------------------------------
 #
 
-COPY ./local.ini /usr/local/etc/php/conf.d
 
 #####################################
 # Aliases:
@@ -135,9 +134,11 @@ COPY ./docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh \
     && ln -s /usr/local/bin/docker-entrypoint.sh /
 
-
+WORKDIR /var/www/html
 #install composer dependecies
 COPY . /var/www/html
+COPY ./local.ini /usr/local/etc/php/conf.d/local.ini
+COPY ./docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 
 RUN composer install --optimize-autoloader --no-dev \
     && php artisan key:generate && php artisan storage:link \
@@ -145,7 +146,7 @@ RUN composer install --optimize-autoloader --no-dev \
     && chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/storage
 
-ENTRYPOINT ["docker-entrypoint.sh"]
-
 EXPOSE 9000
+
+ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["php-fpm"]
