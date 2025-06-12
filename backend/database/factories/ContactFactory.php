@@ -23,7 +23,7 @@ class ContactFactory extends Factory
             'name' => fake()->name(),
             'phone' => '+61' . fake()->numerify('8##########'),
             'company' => fake()->company(),
-            'role' => fake()->randomElement(['manager','employee']),
+            'role' => fake()->randomElement(['Manager','Staff','Employee']),
             'user_id' => User::factory()
         ];
     }

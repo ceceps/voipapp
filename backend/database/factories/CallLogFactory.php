@@ -21,8 +21,8 @@ class CallLogFactory extends Factory
         return [
             'id' => Str::uuid(),
             'duration' => fake()->numberBetween('30','1000'),
-            'timestamps' => fake()->dateTimeBetween('03/01/2025','04/04/2025'),
-            'status' => fake()->randomElement(['completed','missed']),
+            'created_at' => fake()->dateTimeBetween('03/01/2025','06/09/2025'),
+            'status' => fake()->randomElement(['Completed','Missed']),
             'contact_id' => Contact::factory()
         ];
     }
