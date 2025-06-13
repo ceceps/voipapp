@@ -9,7 +9,7 @@
           class="grid justify-items-center text-center cursor-pointer transition-transform duration-300 ease-in-out hover:scale-105"
           @click="route('/contacts')"
         >
-          <img class="w-32" src="https://educlever.beplusthemes.com/university/wp-content/uploads/2018/11/forma4.png"  alt="Contacts" />
+          <img class="w-32" src="assets/forma4.png"  alt="Contacts" />
           <div class="text-xl font-bold">Contacts</div>
           <div>List of Your Leads</div>
         </div>
@@ -19,7 +19,7 @@
           class="grid justify-items-center text-center cursor-pointer transition-transform duration-300 ease-in-out hover:scale-105"
           @click="route('/call-logs')" 
         >
-          <img class="w-32" src="https://educlever.beplusthemes.com/university/wp-content/uploads/2018/11/forma3.png"  alt="Call Logs" />
+          <img class="w-32" src="assets/forma3.png"  alt="Call Logs" />
           <div class="sm:flex text-xl font-bold">Call Logs</div>
           <div class="sm:flex sm:text-center">List of Your Call Logs</div>
         </div>

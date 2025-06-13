@@ -1,37 +1,22 @@
-FROM node:lts-alpine3.22 AS build
+FROM node:lts-alpine3.22
+
 
 # Set working directory
 WORKDIR /var/www/app
 
-# Copy package.json and package-lock.json
-COPY package*.json ./
+# Copy package files for dependency caching
+COPY package.json package-lock.json ./
 
 # Install dependencies
-RUN npm install -g @vue/cli \
-    && npm install
-	
-RUN export PATH="$PATH:node_modules/.bin"
+RUN npm i -g @vue/cli && npm install
 
-# Copy the rest of the application
+# Copy application code
 COPY . .
 
-# Build the Vue app for production
 RUN npm run build
 
-# Use Nginx to serve the built files
-FROM nginx:alpine
+# Expose port (default for Vite, adjust if needed)
+EXPOSE 3000
 
-# Set timezone
-ENV TZ=Asia/Jakarta
-
-# Install bash for debugging
-RUN apk add --no-cache bash
-
-# Copy built files from the build stage
-COPY --from=build /var/www/app/dist /usr/share/nginx/html/crm
-
-# Expose port
-EXPOSE 80
-
-# Start Nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Run development server
+CMD ["npm", "run", "dev"]

@@ -7,8 +7,9 @@ services:
     volumes:
       - ./backend:/var/www/html
       - ./backend/www.conf:/usr/local/etc/php-fpm.d/www.conf
-      - ./backend/local.ini:/usr/local/etc/php/conf.d/local.ini
+      - ./backend/local.ini:/usr местных/etc/php/conf.d/local.ini
       - ./backend/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh
+      - ./backend/wait_for_mysql.sh:/usr/local/bin/wait_for_mysql.sh
     working_dir: /var/www/html
     environment:
       - APP_ENV=local
@@ -23,13 +24,14 @@ services:
       - SESSION_DRIVER=cookie 
       - SESSION_DOMAIN=crm.test
       - XDEBUG=false
+    entrypoint: ["/usr/local/bin/wait_for_mysql.sh", "mysql_laravel", "3306", "/usr/local/bin/docker-entrypoint.sh"]
     depends_on: 
       - mysql_laravel
     networks:
       - laravelnetwork
 
   mysql_laravel:
-    image: mariadb:10.2
+    build: ./database
     container_name: mysql_laravel
     restart: unless-stopped
     tty: true
@@ -37,8 +39,9 @@ services:
       - "36306:3306"
     volumes:
       - ./database/data:/var/lib/mysql
-      - ./database/conf.d:/etc/mysql/conf.d:ro
+      - ./database/conf.d/my.cnf:/etc/mysql/conf.d/my.cnf:ro
     environment:
+      MYSQL_DATABASE: crmvoip
       MYSQL_USER: root
       MYSQL_PASSWORD: 123
       MYSQL_ROOT_PASSWORD: 123
@@ -53,12 +56,15 @@ services:
     image: nginx:latest
     container_name: nginx_laravel
     hostname: nginx
+    restart: unless-stopped
     ports:
       - "80:80"
     volumes:
       - ./backend/public:/var/www/html/public
-      - ./frontend/dist:/usr/share/nginx/html/crm
-      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./frontend/dist:/usr/share/nginx/html/crm:ro
+      - ./nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/conf.d/crm.test.conf:/etc/nginx/conf.d/crm.test.conf
+      - ./nginx/conf.d/crmapi.test.conf:/etc/nginx/conf.d/crmapi.test.conf
     depends_on:
       - php_laravel
       - npm
@@ -66,18 +72,20 @@ services:
       - laravelnetwork
 
   npm:
-    build: ./frontend 
+    build: 
+      context: ./frontend
+      dockerfile: Dockerfile
     working_dir: /var/www/app
     volumes:
       - ./frontend:/var/www/app
       - /var/www/app/node_modules  #ignore node_modules dir when copy
     ports:
-      - "5173:5173"
-    entrypoint: [ 'npm' ]
+      - "3000:3000"
     networks:
       - laravelnetwork
+    command: ["npm","run","serve"]
 
 networks:
-  # a network allows the various containers to communicate with each other
+  # a networkte allows the various containers to communicate with each other
   laravelnetwork:
     driver: bridge

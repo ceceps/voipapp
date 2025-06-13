@@ -18,18 +18,55 @@
 </template>
 
 <script>
+import axios from 'axios';
+import {  API_VER_URL } from "@/config";
+
+//axios.defaults.withCredentials = true;
+//axios.defaults.withXSRFToken = true
+
 export default {
   data() {
     return {
       email: '',
-      password: ''
-    }
+      password: '',
+      error: ''
+    };
   },
   methods: {
-    handleLogin() {
-      // Axios login logic here
-      alert(`Login with ${this.email}`);
+    async handleLogin() {
+      this.error = '';
+
+      if (!this.email || !this.password) {
+        this.error = 'Email and password are required.';
+        return;
+      }
+
+
+      try {
+        // Require call this first for CSRF Token\
+        await axios.get(`/sanctum/csrf-cookie`);
+
+        // continue login
+        const res = await axios.post(
+          `${API_VER_URL}/login`,
+          {
+            email: this.email,
+            password: this.password
+          }
+        );
+
+        localStorage.setItem('token', res.data.token);
+
+        this.$router.push('/contacts');
+      } catch (err) {
+        this.error = err.response?.data?.message || 'Login failed. Please try again.';
+      }
     }
   }
-}
+};
 </script>
+<style scoped>
+body {
+  font-family: 'Inter', sans-serif;
+}
+</style>
