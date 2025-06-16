@@ -1,22 +1,24 @@
-FROM node:lts-alpine3.22
+FROM node:24 AS build
 
 
-# Set working directory
+RUN addgroup app && adduser -S -G app app
+USER app
+
 WORKDIR /var/www/app
-
-# Copy package files for dependency caching
-COPY package.json package-lock.json ./
-
-# Install dependencies
-RUN npm i -g @vue/cli && npm install
-
-# Copy application code
-COPY . .
-
+COPY ./frontend/package*.json ./
+RUN npm ci
+COPY ./frontend/* .
+RUN npm i -g @vue/cli
 RUN npm run build
 
-# Expose port (default for Vite, adjust if needed)
-EXPOSE 3000
+ENV PORT=5173
+EXPOSE 5173
 
-# Run development server
-CMD ["npm", "run", "dev"]
+CMD ["npm","run","serve"]
+# FROM nginx:alpine AS release
+# COPY --from=build /var/www/app/dist /var/www/app/dist
+# COPY ./nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf
+# EXPOSE 80
+
+# CMD [ "nginx","-g","daemon off;"]
+
