@@ -13,15 +13,32 @@ git clone https://github.com/ceceps/voipapp
 
 ## Docker
 Make sure your docker machine is running then Open your terminal console, and run command
+it will build and running with docker container in background
 ```
 docker-compose up -d --build
 ```
-
-### Install Backend
+The result above command show like this
 ```
-cd /var/www/html
-php artisan key:generate
-php artisan migrate --seed
+✔ php_laravel                           Built                                                                   0.0s 
+ ✔ mysql_laravel                         Built                                                                   0.0s 
+ ✔ npm                                   Built                                                                   0.0s 
+ ✔ Network salespond_dev_laravelnetwork  Created                                                                 1.3s 
+ ✔ Volume "salespond_dev_mysql-logs"     Created                                                                 0.0s 
+ ✔ Container npm_dev                     Started                                                                 6.1s 
+ ✔ Container mysql_laravel               Started                                                                 6.5s 
+ ✔ Container php_laravel                 Started                                                                 8.1s 
+ ```
+
+### Setup Backend
+```
+$ docker compose exec -t php_laravel bash
+$ cd /var/www/html
+$ cp .env-example .env
+```
+Edit .env if need adjustment to your system but for default it's fine to keep default, then runn command below
+```
+$ php artisan key:generate
+$ php artisan migrate --seed
 ```
 
 ### Setup Host on Local Browser
@@ -38,7 +55,7 @@ C:\Windows\System32\driver\hosts
 /etc/hosts
 ```
 
-Fiil this values
+Fill this string
 ```
 127.0.0.1 crm.test
 127.0.0.1 crmapi.test
