@@ -32,7 +32,9 @@ The result above command show like this
 ### Setup Backend
 ```
 $ docker compose exec -t php_laravel bash
-$ cd /var/www/html
+```
+bash already place on working dir on /var/www/html then continue to run command
+```
 $ cp .env-example .env
 ```
 Edit .env if need adjustment to your system but for default it's fine to keep default, then runn command below
